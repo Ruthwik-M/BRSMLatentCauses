@@ -1,0 +1,32 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+#Read Data
+obs = read.csv("observation.csv")
+est = read.csv("estimation.csv")
+
+#exp1A
+library(tidyverse)
+```
+
+
+```{r}
+exp1A.est = filter(est, experiment == "exp1A")
+exp1A.est.test = filter(exp1A.est, sequence_type =="test")
+exp1A.est.test.bAvg = filter(exp1A.est.test, condition == "sparse_below_average")
+exp1A.est.test.aAvg = filter(exp1A.est.test, condition == "sparse_above_average")
+exp1A.est.test.bAvg <- transform(exp1A.est.test.bAvg, normalized = delta_estimate/scale_range)
+exp1A.est.test.aAvg <- transform(exp1A.est.test.aAvg, normalized = delta_estimate/scale_range)
+```
+
+
+```{r}
+t.test(exp1A.est.test.bAvg$normalized, exp1A.est.test.aAvg$normalized, var.equal = TRUE)
+```
+```{r}
+library(lsr)
+cohensD(exp1A.est.test.bAvg$normalized, exp1A.est.test.aAvg$normalized)
+```
+
