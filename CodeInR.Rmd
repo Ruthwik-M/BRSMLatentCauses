@@ -6,27 +6,112 @@ output: html_notebook
 #Read Data
 obs = read.csv("observation.csv")
 est = read.csv("estimation.csv")
-
-#exp1A
-library(tidyverse)
 ```
 
 
 ```{r}
+#exp1A Data
+library(tidyverse)
 exp1A.est = filter(est, experiment == "exp1A")
 exp1A.est.test = filter(exp1A.est, sequence_type =="test")
-exp1A.est.test.bAvg = filter(exp1A.est.test, condition == "sparse_below_average")
-exp1A.est.test.aAvg = filter(exp1A.est.test, condition == "sparse_above_average")
-exp1A.est.test.bAvg <- transform(exp1A.est.test.bAvg, normalized = delta_estimate/scale_range)
-exp1A.est.test.aAvg <- transform(exp1A.est.test.aAvg, normalized = delta_estimate/scale_range)
+exp1A.est.test.stingy = filter(exp1A.est.test, condition == "sparse_below_average")
+exp1A.est.test.generous = filter(exp1A.est.test, condition == "sparse_above_average")
 ```
 
 
 ```{r}
-t.test(exp1A.est.test.bAvg$normalized, exp1A.est.test.aAvg$normalized, var.equal = TRUE)
+#Normalising the delta
+exp1A.est.test.stingy <- transform(exp1A.est.test.stingy, normalised_delta = delta_estimate/scale_range)
+exp1A.est.test.generous <- transform(exp1A.est.test.generous, normalised_delta = delta_estimate/scale_range)
 ```
+
+
 ```{r}
+#Two-tailed t-test and Cohen's D - between stingy and generous
 library(lsr)
-cohensD(exp1A.est.test.bAvg$normalized, exp1A.est.test.aAvg$normalized)
+t.test(exp1A.est.test.stingy$normalised, exp1A.est.test.generous$normalised, var.equal = TRUE)
+#We computed the standard deviations to be 0.08 and 0.06 respectively. Since these two are relatively close, we use the independent samples t-test. 
+cohensD(exp1A.est.test.stingy$normalised, exp1A.est.test.generous$normalised)
+```
+
+
+```{r}
+#Permutation test - iterating 2000 times
+library(pracma)
+
+iter <-2000
+
+stingy.normalised <- exp1A.est.test.stingy$normalised
+generous.normalised <- exp1A.est.test.generous$normalised
+data <- c(stingy.normalised, generous.normalised)
+t_bootstrap <-c()
+for (i in 1:iter){
+  rand=randperm(length(data))
+  group1 = data[rand[1:length(stingy.normalised)]]
+  group2 = data[rand[(length(stingy.normalised)+1):length(data)]]
+  t_bootstrap <- c(t_bootstrap,mean(group1)-mean(group2))
+  }
+# t_bootstrap
+hist(t_bootstrap, 
+     main="Bootstrap hist with obs_param = mean(group1)-mean(group2)")
+boot_dist <- sort(t_bootstrap)
+obs_stat<-mean(generous.normalised)-mean(stingy.normalised)
+cl <- c(boot_dist[round(.025*(iter))], boot_dist[length(boot_dist) - round(.025*(iter))])
+# p_value <- length(find(boot_dist[1:length(boot_dist)] >= obs_stat))/iter
+val <- c()
+for (i in 1:iter){
+  if (boot_dist[i] >= obs_stat){
+    val <- c(val, boot_dist[i])  
+  }
+}
+```
+
+
+```{r}
+print("permutation test with 2000 iterations between the mean of two conditions")
+p_value <- length(val)/iter
+print("confidence interval: ")
+print(cl)
+print("p_value: ")
+print(p_value)
+```
+
+
+```{r}
+#Normalizing the post_obs_estimate and true_arithmetic_mean
+exp1A.est.test.stingy <- transform(exp1A.est.test.stingy, normalised_post_obs_estimate = (post_obs_estimate-150)/scale_range)
+exp1A.est.test.generous <- transform(exp1A.est.test.generous, normalised_post_obs_estimate = (post_obs_estimate-150)/scale_range)
+exp1A.est.test.stingy <- transform(exp1A.est.test.stingy, normalised_true_arithmetic_mean = (true_arithmetic_mean-150)/scale_range)
+exp1A.est.test.generous <- transform(exp1A.est.test.generous, normalised_true_arithmetic_mean = (true_arithmetic_mean-150)/scale_range)
+```
+
+
+```{r}
+#One Sample t-test and Cohen's D - between generous and true arithmetic mean
+t.test(x = exp1A.est.test.generous$normalised_post_obs_estimate, mu = mean(exp1A.est.test.generous$normalised_true_arithmetic_mean))
+cohensD(exp1A.est.test.generous$normalised_post_obs_estimate, mean(exp1A.est.test.generous$normalised_true_arithmetic_mean))
+```
+
+
+```{r}
+#One Sample t-test and Cohen's D - between stingy and true arithmetic mean
+t.test(x = exp1A.est.test.stingy$normalised_post_obs_estimate, mu = mean(exp1A.est.test.stingy$normalised_true_arithmetic_mean))
+cohensD(exp1A.est.test.stingy$normalised_post_obs_estimate, mean(exp1A.est.test.stingy$normalised_true_arithmetic_mean))
+```
+
+
+```{r}
+#Two-tailed t-test between raw post_obs_estimate of stingy and generous 
+t.test(exp1A.est.test.stingy$post_obs_estimate/300, exp1A.est.test.generous$post_obs_estimate/300, var.equal = TRUE)
+#We computed the standard deviations to be 0.059 and 0.081 respectively. Since these two are relatively close, we use the independent samples t-test.
+cohensD(exp1A.est.test.stingy$post_obs_estimate/300, exp1A.est.test.generous$post_obs_estimate/300)
+```
+
+
+```{r}
+#Two-tailed t-test between normalized pre_obs_estimate of stingy and generous
+t.test((exp1A.est.test.stingy$pre_obs_estimate - exp1A.est.test.stingy$true_arithmetic_mean)/300, (exp1A.est.test.generous$pre_obs_estimate - exp1A.est.test.generous$true_arithmetic_mean)/300, var.equal = TRUE)
+#We computed the standard deviations to be 0.030 and 0.037 respectively. Since these two are relatively close, we use the independent samples t-test.
+cohensD((exp1A.est.test.stingy$pre_obs_estimate - exp1A.est.test.stingy$true_arithmetic_mean)/300, (exp1A.est.test.generous$pre_obs_estimate - exp1A.est.test.generous$true_arithmetic_mean)/300)
 ```
 
