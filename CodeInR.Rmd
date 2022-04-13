@@ -114,4 +114,38 @@ t.test((exp1A.est.test.stingy$pre_obs_estimate - exp1A.est.test.stingy$true_arit
 #We computed the standard deviations to be 0.030 and 0.037 respectively. Since these two are relatively close, we use the independent samples t-test.
 cohensD((exp1A.est.test.stingy$pre_obs_estimate - exp1A.est.test.stingy$true_arithmetic_mean)/300, (exp1A.est.test.generous$pre_obs_estimate - exp1A.est.test.generous$true_arithmetic_mean)/300)
 ```
+```{r}
+#Getting 1B data 
+exp1B.est = filter(est, experiment == "exp1B")
+exp1B.est.test = filter(exp1B.est, sequence_type =="test")
+exp1B.est.test.stingy = filter(exp1B.est.test, condition == "sparse_below_average")
+exp1B.est.test.generous = filter(exp1B.est.test, condition == "sparse_above_average")
+
+```
+
+```{r}
+exp1B.est.test.generous.normaliseddeltaestimate = (exp1B.est.test.generous$delta_estimate)/ 300
+exp1B.est.test.stingy.normaliseddeltatestimate = (exp1B.est.test.stingy$delta_estimate) / 300
+```
+
+```{r}
+t.test(exp1B.est.test.stingy.normalisedpostestimate, exp1B.est.test.generous.normalisedpostestimate, var=TRUE)
+cohensD(exp1B.est.test.stingy.normalisedpostestimate, exp1B.est.test.generous.normalisedpostestimate)
+```
+
+```{r}
+# data loading for ANOVA in exp1A and exp1B
+exp1AB.est = filter(est, experiment == "exp1B"| experiment == "exp1A")
+exp1AB.est.test = filter(exp1AB.est, sequence_type =="test")
+exp1AB.est.test.stingy = filter(exp1AB.est.test, condition == "sparse_below_average")
+exp1AB.est.test.generous = filter(exp1AB.est.test, condition == "sparse_above_average")
+
+```
+
+
+```{r}
+anova1 <- aov(exp1AB.est.test$delta_estimate/300 ~ exp1AB.est.test$condition * exp1AB.est.test$experiment)
+summary(anova1)
+etaSquared(anova1)
+```
 
