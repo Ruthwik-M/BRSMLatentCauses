@@ -129,8 +129,8 @@ exp1B.est.test.stingy.normaliseddeltatestimate = (exp1B.est.test.stingy$delta_es
 ```
 
 ```{r}
-t.test(exp1B.est.test.stingy.normalisedpostestimate, exp1B.est.test.generous.normalisedpostestimate, var=TRUE)
-cohensD(exp1B.est.test.stingy.normalisedpostestimate, exp1B.est.test.generous.normalisedpostestimate)
+t.test(exp1B.est.test.stingy.normaliseddeltatestimate, exp1B.est.test.generous.normaliseddeltaestimate, var=TRUE)
+cohensD(exp1B.est.test.stingy.normaliseddeltatestimate, exp1B.est.test.generous.normaliseddeltaestimate)
 ```
 
 ```{r}
