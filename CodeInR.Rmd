@@ -149,3 +149,248 @@ summary(anova1)
 etaSquared(anova1)
 ```
 
+```{r}
+# experiment 2A1
+exp2A1.est = filter(est, experiment == "exp2A-1")
+exp2A1.est.test = filter(exp2A1.est, sequence_type =="test")
+exp2A1.est.test.stingy = filter(exp2A1.est.test, condition == "sparse_below_average")
+exp2A1.est.test.generous = filter(exp2A1.est.test, condition == "sparse_above_average")
+```
+
+```{r}
+# Normalising the delta estimates
+exp2A1.est.test.normalisedgenerousdeltaestimate = exp2A1.est.test.generous$delta_estimate / exp2A1.est.test.generous$scale_range
+exp2A1.est.test.normalisedstingydeltaestimate = exp2A1.est.test.stingy$delta_estimate / exp2A1.est.test.stingy$scale_range
+
+```
+
+```{r}
+t2A1 <-t.test(exp2A1.est.test.normalisedstingydeltaestimate, exp2A1.est.test.normalisedgenerousdeltaestimate, var=TRUE)
+t2A1
+cohensD(exp2A1.est.test.normalisedstingydeltaestimate, exp2A1.est.test.normalisedgenerousdeltaestimate)
+t2A1.tvalue <- t2A1$statistic
+t2A1.ss <- nrow(exp2A1.est.test)
+```
+```{r}
+iter <-2000
+
+
+stingy.normalised <- exp2A1.est.test.normalisedstingydeltaestimate
+generous.normalised <- exp2A1.est.test.normalisedgenerousdeltaestimate
+data <- c(stingy.normalised, generous.normalised)
+t_bootstrap <-c()
+for (i in 1:iter){
+  rand=randperm(length(data))
+  group1 = data[rand[1:length(stingy.normalised)]]
+  group2 = data[rand[(length(stingy.normalised)+1):length(data)]]
+  t_bootstrap <- c(t_bootstrap,mean(group1)-mean(group2))
+  }
+# t_bootstrap
+hist(t_bootstrap, 
+     main="Bootstrap hist with obs_param = mean(group1)-mean(group2)")
+boot_dist <- sort(t_bootstrap)
+obs_stat<-mean(generous.normalised)-mean(stingy.normalised)
+cl <- c(boot_dist[round(.025*(iter))], boot_dist[length(boot_dist) - round(.025*(iter))])
+# p_value <- length(find(boot_dist[1:length(boot_dist)] >= obs_stat))/iter
+val <- c()
+for (i in 1:iter){
+  if (boot_dist[i] >= obs_stat){
+    val <- c(val, boot_dist[i])  
+  }
+}
+```
+
+```{r}
+print("permutation test with 2000 iterations between the mean of two conditions")
+p_value <- length(val)/iter
+print("confidence interval: ")
+print(cl)
+print("p_value: ")
+print(p_value)
+```
+
+```{r}
+#Loading exp2A2
+
+exp2A2.est = filter(est, experiment == "exp2A-2")
+exp2A2.est.test = filter(exp2A2.est, sequence_type =="test")
+exp2A2.est.test.stingy = filter(exp2A2.est.test, condition == "sparse_below_average")
+exp2A2.est.test.generous = filter(exp2A2.est.test, condition == "sparse_above_average")
+exp2A2.est.test.normalisedgenerousdeltaestimate = exp2A2.est.test.generous$delta_estimate / exp2A2.est.test.generous$scale_range
+exp2A2.est.test.normalisedstingydeltaestimate = exp2A2.est.test.stingy$delta_estimate / exp2A2.est.test.stingy$scale_range
+
+```
+
+```{r}
+t2A2 <- t.test(exp2A2.est.test.normalisedstingydeltaestimate, exp2A2.est.test.normalisedgenerousdeltaestimate, var=TRUE)
+t2A2
+cohensD(exp2A2.est.test.normalisedstingydeltaestimate, exp2A2.est.test.normalisedgenerousdeltaestimate)
+t2A2.tvalue <- t2A2$statistic
+t2A2.ss <- nrow(exp2A2.est.test)
+```
+```{r}
+exp2A3.est = filter(est, experiment == "exp2A-3")
+exp2A3.est.test = filter(exp2A3.est, sequence_type =="test")
+exp2A3.est.test.stingy = filter(exp2A3.est.test, condition == "sparse_below_average")
+exp2A3.est.test.generous = filter(exp2A3.est.test, condition == "sparse_above_average")
+exp2A3.est.test.normalisedgenerousdeltaestimate = exp2A3.est.test.generous$delta_estimate / exp2A3.est.test.generous$scale_range
+exp2A3.est.test.normalisedstingydeltaestimate = exp2A3.est.test.stingy$delta_estimate / exp2A3.est.test.stingy$scale_range
+```
+
+```{r}
+t2A3 <- t.test(exp2A3.est.test.normalisedstingydeltaestimate, exp2A3.est.test.normalisedgenerousdeltaestimate, var=TRUE)
+t2A3
+cohensD(exp2A3.est.test.normalisedstingydeltaestimate, exp2A3.est.test.normalisedgenerousdeltaestimate)
+t2A3.tvalue <- t2A3$statistic
+t2A3.ss <- nrow(exp2A3.est.test)
+```
+```{r}
+exp2A4.est = filter(est, experiment == "expA-4")
+exp2A4.est.test = filter(exp2A4.est, sequence_type =="test")
+exp2A4.est.test.stingy = filter(exp2A4.est.test, condition == "sparse_below_average")
+exp2A4.est.test.generous = filter(exp2A4.est.test, condition == "sparse_above_average")
+exp2A4.est.test.normalisedgenerousdeltaestimate = exp2A4.est.test.generous$delta_estimate / exp2A4.est.test.generous$scale_range
+exp2A4.est.test.normalisedstingydeltaestimate = exp2A4.est.test.stingy$delta_estimate / exp2A4.est.test.stingy$scale_range
+
+```
+
+```{r}
+t2A4 <- t.test(exp2A4.est.test.normalisedstingydeltaestimate, exp2A4.est.test.normalisedgenerousdeltaestimate, var=FALSE)
+t2A4
+cohensD(exp2A4.est.test.normalisedstingydeltaestimate, exp2A4.est.test.normalisedgenerousdeltaestimate)
+t2A4.tvalue <- t2A4$statistic
+t2A4.ss <- nrow(exp2A4.est.test)
+```
+```{r}
+exp2B.est = filter(est, experiment == "exp2B")
+exp2B.est.test = filter(exp2B.est, sequence_type =="test")
+exp2B.est.test.stingy = filter(exp2B.est.test, condition == "sparse_below_average")
+exp2B.est.test.generous = filter(exp2B.est.test, condition == "sparse_above_average")
+exp2B.est.test.normalisedgenerousdeltaestimate = exp2B.est.test.generous$delta_estimate / exp2B.est.test.generous$scale_range
+exp2B.est.test.normalisedstingydeltaestimate = exp2B.est.test.stingy$delta_estimate / exp2B.est.test.stingy$scale_range
+
+t.test(exp2B.est.test.normalisedstingydeltaestimate, exp2B.est.test.normalisedgenerousdeltaestimate, var=TRUE)
+cohensD(exp2B.est.test.normalisedstingydeltaestimate, exp2B.est.test.normalisedgenerousdeltaestimate)
+```
+
+```{r}
+exp2C.est = filter(est, experiment == "exp2C")
+exp2C.est.test = filter(exp2C.est, sequence_type =="test")
+exp2C.est.test.stingy = filter(exp2C.est.test, condition == "sparse_below_average")
+exp2C.est.test.generous = filter(exp2C.est.test, condition == "sparse_above_average")
+exp2C.est.test.normalisedgenerousdeltaestimate = exp2C.est.test.generous$delta_estimate / exp2C.est.test.generous$scale_range
+exp2C.est.test.normalisedstingydeltaestimate = exp2C.est.test.stingy$delta_estimate / exp2C.est.test.stingy$scale_range
+
+t.test(exp2C.est.test.normalisedstingydeltaestimate, exp2C.est.test.normalisedgenerousdeltaestimate, var=TRUE)
+cohensD(exp2C.est.test.normalisedstingydeltaestimate, exp2C.est.test.normalisedgenerousdeltaestimate)
+```
+```{r}
+# Bayesian Meta-Analytic Ttest
+library(BayesFactor)
+
+exp2A.t <-c(t2A1.tvalue, t2A2.tvalue, t2A3.tvalue, t2A4.tvalue)
+exp2A.ss <- c(t2A1.ss, t2A2.ss, t2A3.ss, t2A4.ss)
+bf = meta.ttestBF(t=exp2A.t, n1=exp2A.ss)
+bf
+```
+```{r}
+tps_tm2A1 <- t.test((exp2A1.est.test.stingy$post_obs_estimate-exp2A1.est.test.stingy$true_arithmetic_mean)/500)
+tps_tm2A2 <- t.test((exp2A2.est.test.stingy$post_obs_estimate-exp2A2.est.test.stingy$true_arithmetic_mean)/500)
+tps_tm2A3 <- t.test((exp2A3.est.test.stingy$post_obs_estimate-exp2A3.est.test.stingy$true_arithmetic_mean)/500)
+tps_tm2A4 <- t.test((exp2A4.est.test.stingy$post_obs_estimate-exp2A4.est.test.stingy$true_arithmetic_mean)/500)
+
+tps_tm2A1
+tps_tm2A2
+tps_tm2A3
+tps_tm2A4
+
+tps_tm2A1.ss <- nrow(exp2A1.est.test.stingy)
+tps_tm2A2.ss <- nrow(exp2A2.est.test.stingy)
+tps_tm2A3.ss <- nrow(exp2A3.est.test.stingy)
+tps_tm2A4.ss <- nrow(exp2A4.est.test.stingy)
+
+tps_tm2_bayes <- c(tps_tm2A1$statistic,tps_tm2A2$statistic, tps_tm2A3$statistic, tps_tm2A4$statistic)
+tps_tm2_ss <- c(tps_tm2A1.ss,tps_tm2A2.ss, tps_tm2A3.ss, tps_tm2A4.ss)
+
+bf.exp2 = meta.ttestBF(t=tps_tm2_bayes, n1=tps_tm2_ss)
+bf.exp2
+```
+```{r}
+tps_tm2A1.g <- t.test((exp2A1.est.test.generous$post_obs_estimate-exp2A1.est.test.generous$true_arithmetic_mean)/500)
+tps_tm2A2.g <- t.test((exp2A2.est.test.generous$post_obs_estimate-exp2A2.est.test.generous$true_arithmetic_mean)/500)
+tps_tm2A3.g <- t.test((exp2A3.est.test.generous$post_obs_estimate-exp2A3.est.test.generous$true_arithmetic_mean)/500)
+tps_tm2A4.g <- t.test((exp2A4.est.test.generous$post_obs_estimate-exp2A4.est.test.generous$true_arithmetic_mean)/500)
+
+tps_tm2A1.g
+tps_tm2A2.g
+tps_tm2A3.g
+tps_tm2A4.g
+
+tps_tm2A1.ss.g <- nrow(exp2A1.est.test.generous)
+tps_tm2A2.ss.g <- nrow(exp2A2.est.test.generous)
+tps_tm2A3.ss.g <- nrow(exp2A3.est.test.generous)
+tps_tm2A4.ss.g <- nrow(exp2A4.est.test.generous)
+
+tps_tm2_bayes.g <- c(tps_tm2A1.g$statistic,tps_tm2A2.g$statistic, tps_tm2A3.g$statistic, tps_tm2A4.g$statistic)
+tps_tm2_ss.g <- c(tps_tm2A1.ss.g, tps_tm2A2.ss.g, tps_tm2A3.ss.g, tps_tm2A4.ss.g)
+
+bf.exp2.g = meta.ttestBF(t=tps_tm2_bayes.g, n1=tps_tm2_ss.g)
+bf.exp2.g
+```
+```{r}
+library(lme4)
+library(nlme)
+
+exp2.est = filter(est, experiment == "exp2A-1" | experiment == "exp2A-2" | 
+                experiment == "exp2A-3" | experiment == "expA-4" | 
+                experiment == "exp2B" | experiment == "exp2C")
+exp2.est.test = filter(exp2.est, sequence_type == "test")
+exp2.est.test_tr <- transform(exp2.est.test, norm_delta_estimate = (exp2.est.test$delta_estimate/exp2.est.test$scale_range))
+exp2.est.test_tr$social <- with(exp2.est.test,
+       ifelse(experiment == "exp2A-1" | experiment == "exp2A-2" | 
+                experiment == "exp2A-3" | experiment == "expA-4", "social",
+       ifelse(experiment == "exp2B" | experiment == "exp2C", "non-social", 
+              "other")))
+
+```
+
+
+```{r}
+exp2_mixed =  lmer(exp2.est.test_tr$norm_delta_estimate ~  + exp2.est.test_tr$condition
+                   + exp2.est.test_tr$social + (1 + 1|exp2.est.test_tr$experiment), data = exp2.est.test_tr)
+summary(exp2_mixed)
+```
+```{r}
+exp2.est.test.social = filter(exp2.est.test_tr, social == "social")
+exp2.est.test.nonsocial = filter(exp2.est.test_tr, social == "non-social")
+exp2.est.test.social.stingy = filter(exp2.est.test.social, 
+                              condition == "sparse_below_average")
+exp2.est.test.social.generous = filter(exp2.est.test.social, 
+                              condition == "sparse_above_average")
+exp2.est.test.nonsocial.generous = filter(exp2.est.test.nonsocial, 
+                              condition == "sparse_above_average")
+exp2.est.test.nonsocial.stingy = filter(exp2.est.test.nonsocial, 
+                              condition == "sparse_below_average")
+
+
+exp2.social.generous.ttest <- t.test(exp2.est.test.social.generous$norm_delta_estimate,
+                                   exp2.est.test.nonsocial.generous$norm_delta_estimate)
+exp2.social.stingy.ttest <- t.test(exp2.est.test.social.stingy$norm_delta_estimate,
+                                   exp2.est.test.nonsocial.stingy$norm_delta_estimate)
+exp2.social.generous.ttest
+exp2.social.stingy.ttest
+
+
+exp2_sg.ss <- nrow(exp2.est.test.social.generous)
+exp2_ss.ss <- nrow(exp2.est.test.social.stingy)
+exp2_nsg.ss <- nrow(exp2.est.test.nonsocial.generous)
+exp2_nss.ss <- nrow(exp2.est.test.nonsocial.stingy)
+
+tps_tm2_bayes.g <- c(tps_tm2A1.g$statistic,tps_tm2A2.g$statistic, tps_tm2A3.g$statistic, tps_tm2A4.g$statistic)
+tps_tm2_ss.g <- c(tps_tm2A1.ss.g, tps_tm2A2.ss.g, tps_tm2A3.ss.g, tps_tm2A4.ss.g)
+
+bf.exp2.g = meta.ttestBF(t=tps_tm2_bayes.g, n1=tps_tm2_ss.g)
+bf.exp2.g
+```
+
+
