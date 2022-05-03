@@ -91,16 +91,18 @@ dev.off()
 ```
 ```{r}
 library(vioplot)
+```
+
+
+```{r}
 png(file="violin1.png", width=550, height=400)
-vioplot(t_bootstrap, rectCol = "blue", lineCol = "white", col=5, 
+vioplot(t_bootstrap, rectCol = "#74f37c", lineCol = "white", col="#74b9f3", 
         horizontal=TRUE, plotCentre = "line") 
 abline(v=0.044, col = "red", lwd = 3)
 ```
 
+
 ```{r}
-library(ggplot2)
-C1 <- data.frame(value = t_bootstrap, variable = "C1")
-ggplot(t_bootstrap, aes(x=variable, y=value)) +  geom_violin()
 ```
 
 
@@ -205,17 +207,17 @@ iter <-2000
 stingy.normalised <- exp2A1.est.test.normalisedstingydeltaestimate
 generous.normalised <- exp2A1.est.test.normalisedgenerousdeltaestimate
 data <- c(stingy.normalised, generous.normalised)
-t_bootstrap <-c()
+t_bootstrap2 <-c()
 for (i in 1:iter){
   rand=randperm(length(data))
   group1 = data[rand[1:length(stingy.normalised)]]
   group2 = data[rand[(length(stingy.normalised)+1):length(data)]]
-  t_bootstrap <- c(t_bootstrap,mean(group1)-mean(group2))
+  t_bootstrap2 <- c(t_bootstrap,mean(group1)-mean(group2))
   }
 # t_bootstrap
-hist(t_bootstrap, 
+hist(t_bootstrap2, 
      main="Bootstrap hist with obs_param = mean(group1)-mean(group2)")
-boot_dist <- sort(t_bootstrap)
+boot_dist <- sort(t_bootstrap2)
 obs_stat<-mean(generous.normalised)-mean(stingy.normalised)
 cl <- c(boot_dist[round(.025*(iter))], boot_dist[length(boot_dist) - round(.025*(iter))])
 # p_value <- length(find(boot_dist[1:length(boot_dist)] >= obs_stat))/iter
@@ -229,19 +231,26 @@ for (i in 1:iter){
 ```
 ```{r}
 library(ggplot2)
-hist <- hist(t_bootstrap, 
+hist <- hist(t_bootstrap2, 
      main="Bootstrap hist with obs_param = mean(group1)-mean(group2)")  
 abline(v=cl, col=c("blue", "blue"), lty=c(1,1), lwd=c(3, 3))
 abline(v=0.044, col = "red", lwd = 3)
 
 png(file="bootstrap.png",
 width=600, height=350) 
-hist <- hist(t_bootstrap, 
+hist <- hist(t_bootstrap2, 
      main="Bootstrap hist with obs_param = mean(group1)-mean(group2)")  
 abline(v=cl, col=c("blue", "blue"), lty=c(1,1), lwd=c(3, 3))
 abline(v=0.044, col = "red", lwd = 3)
 dev.off()
 ```
+```{r}
+png(file="violin2.png", width=550, height=400)
+vioplot(t_bootstrap2, rectCol = "#74f37c", lineCol = "white", col="#74b9f3", 
+        horizontal=TRUE, plotCentre = "line") 
+abline(v=0.044, col = "red", lwd = 3)
+```
+
 
 ```{r}
 print("permutation test with 2000 iterations between the mean of two conditions")
@@ -426,51 +435,25 @@ library(ggplot2)
 colors <- c("#E69F00", "#56B4E9") 
 grps <- c("sparse_below_average", "sparse_above_average")
 sp <- ggplot(linear_data, aes(x=obs40, y=Post_obs_est,  color=condition)) +
-  geom_point()  
+  geom_point(size=3)  
 
 coeff=coefficients(linear_regress)
 # Equation of the line : 
 eq = paste0("y = ", round(coeff[2],1), "*x + ", round(coeff[1],1))
 # Plot
-sp + geom_abline(intercept = 139, slope = 0.1)+
-  ggtitle(eq)
-# Change line type, color and size
-sp + geom_abline(intercept = 37, slope = -5, color="red", 
-                 linetype="dashed", size=1.5)+
-  ggtitle(eq)
+sp + geom_abline(intercept = 139, slope = 0.1,  size=1)+
+  ggtitle(eq)+ theme_classic()
 
 ```
+
 ```{r}
 png(file="linear_reg.png",
 width=600, height=350) 
-sp + geom_abline(intercept = 139, slope = 0.1)+
+sp + geom_abline(intercept = 139, slope = 0.1) + theme_classic() +
   ggtitle(eq)
 ggtitle(eq) 
 dev.off()
 ```
-```{r}
-ttest.exp2tnsg <- t.test((exp2.est.test.nonsocial.generous$)
-ttest.exp2tnss <- t.test((exp2.est.test.nonsocial.stingy$post_obs_estimate - exp2.est.test.nonsocial.stingy$pre_obs_estimate)/exp2.est.test.nonsocial.stingy$scale_range)
-ttest.exp2tsg <- t.test((exp2.est.test.social.generous$post_obs_estimate - exp2.est.test.social.generous$pre_obs_estimate)/exp2.est.test.social.generous$scale_range)
-ttest.exp2tss <- t.test((exp2.est.test.social.stingy$post_obs_estimate - exp2.est.test.social.stingy$pre_obs_estimate)/exp2.est.test.social.stingy$scale_range)
 
-ttest.exp2tnsg
-ttest.exp2tnss
-ttest.exp2tsg
-ttest.exp2tss
-
-tps.tm.exp2tnsg.ss <- nrow(exp2.est.test.nonsocial.generous)
-tps.tm.exp2tnss.ss <- nrow(exp2.est.test.nonsocial.stingy)
-tps.tm.exp2tsg.ss <- nrow(exp2.est.test.social.generous)
-tps.tm.exp2tss.ss <- nrow(exp2.est.test.social.stingy)
-
-tps_tm2_bayes.g <- c(ttest.exp2tnsg$statistic,ttest.exp2tnss$statistic, ttest.exp2tsg$statistic, ttest.exp2tss$statistic)
-tps.tm.ss <- c(tps.tm.exp2tnsg.ss, tps.tm.exp2tnss.ss,
-               tps.tm.exp2tsg.ss, tps.tm.exp2tss.ss)
-
-bf.exp2.ss = meta.ttestBF(t=tps_tm2_bayes.g, n1=tps.tm.ss)
-bf.exp2.ss
-
-```
 
 
