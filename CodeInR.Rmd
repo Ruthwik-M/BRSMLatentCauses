@@ -97,12 +97,9 @@ library(vioplot)
 ```{r}
 png(file="violin1.png", width=550, height=400)
 vioplot(t_bootstrap, rectCol = "#74f37c", lineCol = "white", col="#74b9f3", 
-        horizontal=TRUE, plotCentre = "line") 
+        horizontal=TRUE, plotCentre = "line", main="Permutation test for 
+        normallised estimate between the groups", xlab="Bias") 
 abline(v=0.044, col = "red", lwd = 3)
-```
-
-
-```{r}
 ```
 
 
@@ -247,7 +244,8 @@ dev.off()
 ```{r}
 png(file="violin2.png", width=550, height=400)
 vioplot(t_bootstrap2, rectCol = "#74f37c", lineCol = "white", col="#74b9f3", 
-        horizontal=TRUE, plotCentre = "line") 
+        horizontal=TRUE, plotCentre = "line", main="Permutation test for 
+        normallised estimate between the groups", xlab="Bias") 
 abline(v=0.044, col = "red", lwd = 3)
 ```
 
