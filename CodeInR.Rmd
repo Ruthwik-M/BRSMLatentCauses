@@ -75,6 +75,33 @@ print(cl)
 print("p_value: ")
 print(p_value)
 ```
+```{r}
+hist <- hist(t_bootstrap, 
+     main="Bootstrap hist with obs_param = mean(group1)-mean(group2)")  
+abline(v=cl, col=c("blue", "blue"), lty=c(1,1), lwd=c(3, 3))
+abline(v=0.044, col = "red", lwd = 3)
+
+png(file="bootstrap2.png",
+width=600, height=350) 
+hist <- hist(t_bootstrap, 
+     main="Bootstrap hist with obs_param = mean(group1)-mean(group2)")  
+abline(v=cl, col=c("blue", "blue"), lty=c(1,1), lwd=c(3, 3))
+abline(v=0.044, col = "red", lwd = 3)
+dev.off()
+```
+```{r}
+library(vioplot)
+png(file="violin1.png", width=550, height=400)
+vioplot(t_bootstrap, rectCol = "blue", lineCol = "white", col=5, 
+        horizontal=TRUE, plotCentre = "line") 
+abline(v=0.044, col = "red", lwd = 3)
+```
+
+```{r}
+library(ggplot2)
+C1 <- data.frame(value = t_bootstrap, variable = "C1")
+ggplot(t_bootstrap, aes(x=variable, y=value)) +  geom_violin()
+```
 
 
 ```{r}
@@ -198,6 +225,22 @@ for (i in 1:iter){
     val <- c(val, boot_dist[i])  
   }
 }
+
+```
+```{r}
+library(ggplot2)
+hist <- hist(t_bootstrap, 
+     main="Bootstrap hist with obs_param = mean(group1)-mean(group2)")  
+abline(v=cl, col=c("blue", "blue"), lty=c(1,1), lwd=c(3, 3))
+abline(v=0.044, col = "red", lwd = 3)
+
+png(file="bootstrap.png",
+width=600, height=350) 
+hist <- hist(t_bootstrap, 
+     main="Bootstrap hist with obs_param = mean(group1)-mean(group2)")  
+abline(v=cl, col=c("blue", "blue"), lty=c(1,1), lwd=c(3, 3))
+abline(v=0.044, col = "red", lwd = 3)
+dev.off()
 ```
 
 ```{r}
@@ -206,7 +249,7 @@ p_value <- length(val)/iter
 print("confidence interval: ")
 print(cl)
 print("p_value: ")
-print(p_value)
+print(p_value) 
 ```
 
 ```{r}
@@ -356,41 +399,78 @@ exp2.est.test_tr$social <- with(exp2.est.test,
 
 
 ```{r}
-exp2_mixed =  lmer(exp2.est.test_tr$norm_delta_estimate ~  + exp2.est.test_tr$condition
-                   + exp2.est.test_tr$social + (1 + 1|exp2.est.test_tr$experiment), data = exp2.est.test_tr)
+exp2_mixed =  lmer(exp2.est.test_tr$norm_delta_estimate ~  exp2.est.test_tr$condition
+                   + exp2.est.test_tr$social + (
+                     1|exp2.est.test_tr$experiment
+                     ), 
+                   data = exp2.est.test_tr,)
 summary(exp2_mixed)
 ```
 ```{r}
-exp2.est.test.social = filter(exp2.est.test_tr, social == "social")
-exp2.est.test.nonsocial = filter(exp2.est.test_tr, social == "non-social")
-exp2.est.test.social.stingy = filter(exp2.est.test.social, 
-                              condition == "sparse_below_average")
-exp2.est.test.social.generous = filter(exp2.est.test.social, 
-                              condition == "sparse_above_average")
-exp2.est.test.nonsocial.generous = filter(exp2.est.test.nonsocial, 
-                              condition == "sparse_above_average")
-exp2.est.test.nonsocial.stingy = filter(exp2.est.test.nonsocial, 
-                              condition == "sparse_below_average")
+post_estimate <- exp1B.est.test$post_obs_estimate
+obs = read.csv("observation.csv")
+exp1B.obs = filter(obs, experiment=="exp1B")
+exp1B.obs.test = filter(exp1B.obs, sequence_type=="test")
+exp1B.obs.test.t37to40 = filter(exp1B.obs.test, t>=35 & t<=40)
+linear_data <- read_csv("linear_reg.csv")
+```
 
+```{r}
+linear_regress <- lm(post_estimate ~ 
+                     + linear_data$obs40)
+summary(linear_regress)
+linear_regress
+```
+```{r}
+library(ggplot2)
+colors <- c("#E69F00", "#56B4E9") 
+grps <- c("sparse_below_average", "sparse_above_average")
+sp <- ggplot(linear_data, aes(x=obs40, y=Post_obs_est,  color=condition)) +
+  geom_point()  
 
-exp2.social.generous.ttest <- t.test(exp2.est.test.social.generous$norm_delta_estimate,
-                                   exp2.est.test.nonsocial.generous$norm_delta_estimate)
-exp2.social.stingy.ttest <- t.test(exp2.est.test.social.stingy$norm_delta_estimate,
-                                   exp2.est.test.nonsocial.stingy$norm_delta_estimate)
-exp2.social.generous.ttest
-exp2.social.stingy.ttest
+coeff=coefficients(linear_regress)
+# Equation of the line : 
+eq = paste0("y = ", round(coeff[2],1), "*x + ", round(coeff[1],1))
+# Plot
+sp + geom_abline(intercept = 139, slope = 0.1)+
+  ggtitle(eq)
+# Change line type, color and size
+sp + geom_abline(intercept = 37, slope = -5, color="red", 
+                 linetype="dashed", size=1.5)+
+  ggtitle(eq)
 
+```
+```{r}
+png(file="linear_reg.png",
+width=600, height=350) 
+sp + geom_abline(intercept = 139, slope = 0.1)+
+  ggtitle(eq)
+ggtitle(eq) 
+dev.off()
+```
+```{r}
+ttest.exp2tnsg <- t.test((exp2.est.test.nonsocial.generous$)
+ttest.exp2tnss <- t.test((exp2.est.test.nonsocial.stingy$post_obs_estimate - exp2.est.test.nonsocial.stingy$pre_obs_estimate)/exp2.est.test.nonsocial.stingy$scale_range)
+ttest.exp2tsg <- t.test((exp2.est.test.social.generous$post_obs_estimate - exp2.est.test.social.generous$pre_obs_estimate)/exp2.est.test.social.generous$scale_range)
+ttest.exp2tss <- t.test((exp2.est.test.social.stingy$post_obs_estimate - exp2.est.test.social.stingy$pre_obs_estimate)/exp2.est.test.social.stingy$scale_range)
 
-exp2_sg.ss <- nrow(exp2.est.test.social.generous)
-exp2_ss.ss <- nrow(exp2.est.test.social.stingy)
-exp2_nsg.ss <- nrow(exp2.est.test.nonsocial.generous)
-exp2_nss.ss <- nrow(exp2.est.test.nonsocial.stingy)
+ttest.exp2tnsg
+ttest.exp2tnss
+ttest.exp2tsg
+ttest.exp2tss
 
-tps_tm2_bayes.g <- c(tps_tm2A1.g$statistic,tps_tm2A2.g$statistic, tps_tm2A3.g$statistic, tps_tm2A4.g$statistic)
-tps_tm2_ss.g <- c(tps_tm2A1.ss.g, tps_tm2A2.ss.g, tps_tm2A3.ss.g, tps_tm2A4.ss.g)
+tps.tm.exp2tnsg.ss <- nrow(exp2.est.test.nonsocial.generous)
+tps.tm.exp2tnss.ss <- nrow(exp2.est.test.nonsocial.stingy)
+tps.tm.exp2tsg.ss <- nrow(exp2.est.test.social.generous)
+tps.tm.exp2tss.ss <- nrow(exp2.est.test.social.stingy)
 
-bf.exp2.g = meta.ttestBF(t=tps_tm2_bayes.g, n1=tps_tm2_ss.g)
-bf.exp2.g
+tps_tm2_bayes.g <- c(ttest.exp2tnsg$statistic,ttest.exp2tnss$statistic, ttest.exp2tsg$statistic, ttest.exp2tss$statistic)
+tps.tm.ss <- c(tps.tm.exp2tnsg.ss, tps.tm.exp2tnss.ss,
+               tps.tm.exp2tsg.ss, tps.tm.exp2tss.ss)
+
+bf.exp2.ss = meta.ttestBF(t=tps_tm2_bayes.g, n1=tps.tm.ss)
+bf.exp2.ss
+
 ```
 
 
